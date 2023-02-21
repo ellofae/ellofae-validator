@@ -18,6 +18,7 @@ var (
 	ErrStringLengthIsNotSatisfied = errors.New("error: string's length is beyond the limit of min value or max value")
 )
 
+// Function that prints out all errors that occured during the validation from the slice where they are contained
 func logErrorsToUser(errorList []error, structName interface{}) {
 	fmt.Printf("(%s) Validation errors occured:\n", reflect.ValueOf(structName).Elem().Type())
 	for _, err := range errorList {

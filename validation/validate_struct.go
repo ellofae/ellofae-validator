@@ -23,8 +23,31 @@ func Field(field interface{}, rules ...Rule) *FieldType {
 	}
 }
 
-// Funcation for validating a struct and its fields with specific passed rules
+// Funcation for validating a struct and its fields with specific rules
+// It return nil if the struct and its fields are valid and the one specific error if it occures
 func ValidateStruct(data interface{}, fields ...*FieldType) error {
+	val := reflect.ValueOf(data)
+
+	if val.Kind() != reflect.Ptr || !val.IsNil() && val.Elem().Kind() != reflect.Struct {
+		return ErrNotValidatable
+	}
+	if val.IsNil() {
+		return nil
+	}
+
+	for _, field := range fields {
+		err := Validate(field.fieldPtr, field.rules)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Funcation for validating a struct and its fields with specific passed rules
+// Function is more for informative use, it doesn't return a specific error, but prints out errros that occured
+func ValidateStructInformative(data interface{}, fields ...*FieldType) error {
 	errorList := make([]error, 0) // list of occured errors
 	val := reflect.ValueOf(data)
 
