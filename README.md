@@ -2,4 +2,4 @@
 ___________________________________
 Tasks to do:
 * Add Validation for custom types
-* then upload publicly
+* Add Unit and Mock tests
