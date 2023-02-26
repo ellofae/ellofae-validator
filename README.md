@@ -34,9 +34,9 @@ ___________________________________
 Все доступные пользователю условия валидации полей структур реализуют метод **Specifier(value interface{}) error**. Так как условия валидации реализуют данный метод, то они могут быть представлены в виде типа **Rule**, служащим основным типом(интерфейсом) условий, во время передачи их в функцию **Field(field interface{}, rules ...Rule) *FieldType**. При определения собственных условий валидации, тип должен реализовывать метод **Specifier(value interface{}) error** 
 
 Доступные пользователю условия валидации:
-	Required    			задает условие значению поля, чтобы то было определено(не nil), иначе возвращается ошибка ErrFieldNotSpecified
+	Required    			зачение поля должно быть определено (не быть nil)
 	
-	UnsignedInt 			тип значения поля uint8, uint16, uint32, uint64, uint, иначе возвращается ошибка ErrValueNotUnsignedInt
+	UnsignedInt 			тип значения поля uint8, uint16, uint32, uint64, uint
 	
 	Length struct			длина строки должна быть в интервале между минимальным и максимальным значениями
 		MinValue int
@@ -48,4 +48,40 @@ ___________________________________
 	}
 	
 
+## Валидация структур
 
+Структура должна быть передана функцям в виде указателя на нее, иначе будет возвращена ошибка ErrNotValidatable
+Пример использования функции **func ValidateStruct(data interface{}, fields ...*FieldType) error**:
+
+```
+type MyType struct {
+	IntField    int64
+	StringField string
+	NilPtrField *int
+}
+
+myStruct := MyType{255, "test string", nil}
+
+err := validation.ValidateStruct(&myStruct,
+		validation.Field(&myStruct.IntField, validation.UnsignedInt),
+		validation.Field(&myStruct.StringField, validation.MatchRequired{"[A-Z]"}, validation.Length{4, 20}),
+		validation.Field(&myStruct.NilPtrField, validation.Required))
+
+if err != nil {
+	// Обработка любой возникшей ошибки
+	fmt.Println("Result: Not valid... check the log file '../tmp/logger.log' for more information")
+}
+```
+
+Пример использования функции **func ValidateStructInformative(data interface{}, fields ...*FieldType) error**:
+
+```
+err = validation.ValidateStructInformative(&myStruct,
+		validation.Field(&myStruct.IntField, validation.UnsignedInt),
+		validation.Field(&myStruct.StringField, validation.MatchRequired{"[A-Z]"}, validation.Length{10, 20}),
+		validation.Field(&myStruct.NilPtrField, validation.Required))
+
+if err != nil {
+	fmt.Println(err) // обработка ошибки ErrStructNotValid
+}
+```
