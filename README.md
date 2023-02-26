@@ -85,3 +85,6 @@ if err != nil {
 	fmt.Println(err) // обработка ошибки ErrStructNotValid
 }
 ```
+
+## Пример записи в лог файл logger.log (./tmp/logger.log)
+![result1](https://github.com/ellofae/ellofae-validator/blob/main/imgs/Screenshot%20from%202023-02-26%2018-05-23.png?raw=true)
