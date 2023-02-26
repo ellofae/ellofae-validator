@@ -92,6 +92,7 @@ func (m MatchRequired) Specifier(value interface{}) error {
 // Add validation for specifing the value is unsigned int
 func (u UnsignedIntProperties) Specifier(value interface{}) error {
 	val := reflect.ValueOf(value).Elem().Kind()
+
 	if val != reflect.Uint8 && val != reflect.Uint16 && val != reflect.Uint32 && val != reflect.Uint64 && val != reflect.Uint {
 		return fmt.Errorf("%w (current field type: %s)", ErrValueNotUnsignedInt, reflect.ValueOf(value).Elem().Type())
 	}

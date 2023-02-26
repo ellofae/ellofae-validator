@@ -2,13 +2,14 @@ package validation
 
 import (
 	"errors"
-	"fmt"
-	"reflect"
 )
 
-// Add "github.com/pkg/errors" package for a Wrapf func
-
+// Errors that are sent to a user and to the log file
+// User can work with returned errors to get the information on the specific error that occured
+// during the validation
 var (
+	ErrNilStruct                  = errors.New("error: data structure has to be defined and not nil")
+	ErrLogFileNotOpened           = errors.New("error: log file was not successfully opened")
 	ErrStructNotValid             = errors.New("error: struct is not valid")
 	ErrValueNotUnsignedInt        = errors.New("error: possible values - uint8, uint16, uint32, uint64, uint")
 	ErrRegexNotSatisfied          = errors.New("error: regex expression was not satisfied")
@@ -17,14 +18,6 @@ var (
 	ErrOnlyStringValue            = errors.New("error: value must be a string")
 	ErrStringLengthIsNotSatisfied = errors.New("error: string's length is beyond the limit of min value or max value")
 )
-
-// Function that prints out all errors that occured during the validation from the slice where they are contained
-func logErrorsToUser(errorList []error, structName interface{}) {
-	fmt.Printf("(%s) Validation errors occured:\n", reflect.ValueOf(structName).Elem().Type())
-	for _, err := range errorList {
-		fmt.Println("\t", err)
-	}
-}
 
 // Function that validates fields of a struct
 // Where first argument is a field value and second argument is a slice of rules for validation of the field

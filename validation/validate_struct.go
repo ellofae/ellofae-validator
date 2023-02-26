@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 )
@@ -25,19 +26,33 @@ func Field(field interface{}, rules ...Rule) *FieldType {
 
 // Funcation for validating a struct and its fields with specific rules
 // It return nil if the struct and its fields are valid and the one specific error if it occures
+// If an error occurs it sends a message about the error to the log file, but only the first error.
 func ValidateStruct(data interface{}, fields ...*FieldType) error {
+	var insideError error
+	aLog, err := logCreation()
+	if err != nil {
+		log.Fatal(err, ErrLogFileNotOpened)
+	}
+
+	defer func() {
+		writeToLog(aLog, fmt.Errorf("%w (data type: %v)", insideError, reflect.ValueOf(data).Type()))
+	}()
+
 	val := reflect.ValueOf(data)
 
 	if val.Kind() != reflect.Ptr || !val.IsNil() && val.Elem().Kind() != reflect.Struct {
+		insideError = ErrNotValidatable
 		return ErrNotValidatable
 	}
 	if val.IsNil() {
-		return nil
+		insideError = ErrNilStruct
+		return ErrNilStruct
 	}
 
 	for _, field := range fields {
 		err := Validate(field.fieldPtr, field.rules)
 		if err != nil {
+			insideError = err
 			return err
 		}
 	}
@@ -46,31 +61,39 @@ func ValidateStruct(data interface{}, fields ...*FieldType) error {
 }
 
 // Funcation for validating a struct and its fields with specific passed rules
-// Function is more for informative use, it doesn't return a specific error, but prints out errros that occured
+// Function is more for informative use, it doesn't return a specific error, but logs out errors
+// to the log file that occur during the validation
 func ValidateStructInformative(data interface{}, fields ...*FieldType) error {
-	errorList := make([]error, 0) // list of occured errors
+	aLog, err := logCreation()
+	if err != nil {
+		log.Fatal(err, ErrLogFileNotOpened)
+	}
+
 	val := reflect.ValueOf(data)
+	var validBool bool = false
 
 	if val.Kind() != reflect.Ptr || !val.IsNil() && val.Elem().Kind() != reflect.Struct {
+		aLog.Println("*terminated: ", ErrNotValidatable)
 		return ErrNotValidatable
 	}
 	if val.IsNil() {
-		return nil
+		aLog.Println("*terminated: ", ErrNilStruct)
+		return ErrNilStruct
 	}
 
 	for _, field := range fields {
 		err := Validate(field.fieldPtr, field.rules)
 		if err != nil {
-			// the first error of the field being not valid is added and then starts validating the next field
-			errorList = append(errorList, err)
+			aLog.Println(err)
+			validBool = true
 		}
 	}
 
-	if len(errorList) != 0 {
-		logErrorsToUser(errorList, data)
+	if validBool {
+		aLog.Printf("Struct '%v' is NOT valid", val.Type())
 		return ErrStructNotValid
 	} else {
-		log.Printf("Struct '%v' is valid", val.Type())
+		aLog.Printf("Struct '%v' is valid", val.Type())
 		return nil
 	}
 }
